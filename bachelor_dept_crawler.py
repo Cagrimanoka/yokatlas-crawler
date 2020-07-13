@@ -183,6 +183,6 @@ try:
     with open("bachelor_data_pickle", "wb") as f:
         pickle.dump(data, f, protocol=4)
 
-    input("Veriler başarıyla işlendi. \"bachelor_data_pickle\" bu verilere ulaşabilirsiniz. Çıkmak için Enter'a basın.")
+    input("Veriler başarıyla işlendi. \"bachelor_data_pickle\" dosyasından bu verilere ulaşabilirsiniz. Çıkmak için Enter'a basın.")
 except:
     traceback.print_exc(file=open("bachelor_err.txt", "w+"))
