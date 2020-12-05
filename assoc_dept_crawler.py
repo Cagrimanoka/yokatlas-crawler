@@ -7,6 +7,9 @@ import pandas
 import numpy
 import requests
 
+with open("assoc_data_pickle", "rb") as f:
+    prev_cache = pickle.load(f)
+
 try:
     # years have difference, class should treat them differently but put em under the same id
 
@@ -18,7 +21,7 @@ try:
         return f"{custom_msg} - [{'|' * line_count}{'-' * (50 - line_count)}] %{round(percentage, 2)} - ({progress}/{total})"
 
 
-    year_range = (2016, 2019)
+    year_range = (2020, 2020)
 
     base_url = "https://yokatlas.yok.gov.tr"
 
@@ -106,11 +109,17 @@ try:
         if uni_id not in uni_data_storage:
             uni_data_storage[uni_id] = (
             pandas_list[::-1][0][0].to_dict()[second_dict_name][2], pandas_list[::-1][0][0].to_dict()[second_dict_name][1])
-        dept_data_form = dept_data_template.copy()
-        dept_data_form["kod"] = dept_id
-        dept_data_form["bolum_adi"] = list(pandas_list[::-1][0][0].to_dict())[0]
-        dept_data_form["myo"] = pandas_list[::-1][0][0].to_dict()[second_dict_name][3]
-        dept_data_form["yil_verileri"] = {}
+        newlist = True
+        if str(dept_id)[:4] in prev_cache:
+            if str(dept_id) in prev_cache[str(dept_id)[:4]]["bolumler"]:
+                dept_data_form = prev_cache[str(dept_id)[:4]]["bolumler"][str(dept_id)]
+                newlist = False
+        if newlist:
+            dept_data_form = dept_data_template.copy()
+            dept_data_form["kod"] = dept_id
+            dept_data_form["bolum_adi"] = list(pandas_list[::-1][0][0].to_dict())[0]
+            dept_data_form["myo"] = pandas_list[::-1][0][0].to_dict()[second_dict_name][3]
+            dept_data_form["yil_verileri"] = {}
         depts[dept_id] = dept_data_form
         for panda in pandas_list[::-1]:
             panda = [p.replace(numpy.nan, "---", regex=True) for p in panda]
@@ -194,9 +203,9 @@ try:
         data[uni_id] = uni_data
         i += 1
 
-    with open("assoc_data_pickle", "wb") as f:
+    with open("assoc_data_pickle_new", "wb") as f:
         pickle.dump(data, f, protocol=4)
 
-    input("Veriler başarıyla işlendi. \"assoc_data_pickle\" dosyasından bu verilere ulaşabilirsiniz. Çıkmak için Enter'a basın.")
+    input("Veriler başarıyla işlendi. \"assoc_data_pickle_new\" bu verilere ulaşabilirsiniz. Çıkmak için Enter'a basın.")
 except:
     traceback.print_exc(file=open("assoc_err.txt", "w+"))

@@ -7,7 +7,8 @@ import pandas
 import requests
 from bs4 import BeautifulSoup
 
-
+with open("bachelor_data_pickle", "rb") as f:
+    prev_cache = pickle.load(f)
 
 try:
     # years have difference, class should treat them differently but put em under the same id
@@ -20,13 +21,75 @@ try:
         return f"{custom_msg} - [{'|' * line_count}{'-' * (50 - line_count)}] %{round(percentage, 2)} - ({progress}/{total})"
 
 
-    year_range = (2016, 2019)
+    year_range = (2020, 2020)
 
     base_url = "https://yokatlas.yok.gov.tr"
 
     urls = {"ly_genel_bilgiler": "/content/lisans-dynamic/1000_1.php?y=",
             "oy_genel_bilgiler": "/%y/content/lisans-dynamic/1000_1.php?y="}
 
+    """
+    main_urls = {"ly_main_url": "/lisans.php?y=", "oy_main_url": "/%y/lisans.php?y="}
+    
+    additional_urls = {"ly_yerlesen": "/content/lisans-dynamic/1000_2.php?y=",
+                    "oy_yerlesen": "/%y/content/lisans-dynamic/1000_2.php?y=",
+                    "ly_cinsiyet": "/content/lisans-dynamic/1010.php?y=",
+                    "oy_cinsiyet": "/%y/content/lisans-dynamic/1010.php?y=",
+                    "ly_cografi_bolgeler": "/content/lisans-dynamic/1020ab.php?y=",
+                    "oy_cografi_bolgeler": "/%y/content/lisans-dynamic/1020ab.php?y=",
+                    "ly_iller": "/content/lisans-dynamic/1020c.php?y=",
+                    "oy_iller": "/%y/content/lisans-dynamic/1020c.php?y=",
+                    "ly_ogrenim_durumu": "/content/lisans-dynamic/1030a.php?y=",
+                    "oy_ogrenim_durumu": "/%y/content/lisans-dynamic/1030a.php?y=",
+                    "ly_lise_mezuniyet_yili": "/content/lisans-dynamic/1030b.php?y=",
+                    "oy_lise_mezuniyet_yili": "/%y/content/lisans-dynamic/1030b.php?y=",
+                    "ly_lise_alani": "/content/lisans-dynamic/1050b.php?y=",
+                    "oy_lise_alani": "/%y/content/lisans-dynamic/1050b.php?y=",
+                    "ly_lise_grubu": "/content/lisans-dynamic/1050a.php?y=",
+                    "oy_lise_grubu": "/%y/content/lisans-dynamic/1050a.php?y=",
+                    "ly_lise": "/content/lisans-dynamic/1060.php?y=",
+                    "oy_lise": "/%y/content/lisans-dynamic/1060.php?y=",
+                    "ly_okul_birincileri": "/content/lisans-dynamic/1030c.php?y=",
+                    "oy_okul_birincileri": "/%y/content/lisans-dynamic/1030c.php?y=",
+                    "ly_taban_puan_sira": "/content/lisans-dynamic/1000_3.php?y=",
+                    "oy_taban_puan_sira": "/%y/content/lisans-dynamic/1000_3.php?y=",
+                    "ly_son_profil": "/content/lisans-dynamic/1070.php?y=",
+                    "oy_son_profil": "/%y/content/lisans-dynamic/1070.php?y=",
+                    "ly_osys_net_ortalama": "/content/lisans-dynamic/1210a.php?y=",
+                    "oy_osys_net_ortalama": "/%y/content/lisans-dynamic/1210a.php?y=",
+                    "ly_osys_puanlar": "/content/lisans-dynamic/1220.php?y=",
+                    "oy_osys_puanlar": "/%y/content/lisans-dynamic/1220.php?y=",
+                    "ly_osys_siralamalar": "/content/lisans-dynamic/1230.php?y=",
+                    "oy_osys_siralamalar": "/%y/content/lisans-dynamic/1230.php?y=",
+                    "ly_tercih_istatistikleri": "/content/lisans-dynamic/1080.php?y=",
+                    "oy_tercih_istatistikleri": "/%y/content/lisans-dynamic/1080.php?y=",
+                    "ly_yerlesilen_tercih_sirasi": "/content/lisans-dynamic/1040.php?y=",
+                    "oy_yerlesilen_tercih_sirasi": "/%y/content/lisans-dynamic/1040.php?y=",
+                    "ly_tercih_egilim_genel": "/content/lisans-dynamic/1300.php?y=",
+                    "oy_tercih_egilim_genel": "/%y/content/lisans-dynamic/1300.php?y=",
+                    "ly_tercih_egilim_tur": "/content/lisans-dynamic/1310.php?y=",
+                    "oy_tercih_egilim_tur": "/%y/content/lisans-dynamic/1310.php?y=",
+                    "ly_tercih_egilim_uni": "/content/lisans-dynamic/1320.php?y=",
+                    "oy_tercih_egilim_uni": "/%y/content/lisans-dynamic/1320.php?y=",
+                    "ly_tercih_egilim_il": "/content/lisans-dynamic/1330.php?y=",
+                    "oy_tercih_egilim_il": "/%y/content/lisans-dynamic/1330.php?y=",
+                    "ly_tercih_egilim_program": "/content/lisans-dynamic/1340a.php?y=",
+                    "oy_tercih_egilim_program": "/%y/content/lisans-dynamic/1340a.php?y=",
+                    "ly_tercih_egilim_meslek": "/content/lisans-dynamic/1340b.php?y=",
+                    "oy_tercih_egilim_meslek": "/%y/content/lisans-dynamic/1340b.php?y=",
+                    "ly_yerlesme_kosullar": "/content/lisans-dynamic/1110.php?y=",
+                    "oy_yerlesme_kosullar": "/%y/content/lisans-dynamic/1110.php?y=",
+                    "ly_ogretim_uyesi": "/content/lisans-dynamic/2050.php?y=",
+                    "oy_ogretim_uyesi": "/%y/content/lisans-dynamic/2050.php?y=",
+                    "ly_kayitli_ogrenci_sayisi": "/content/lisans-dynamic/2010.php?y=",
+                    "oy_kayitli_ogrenci_sayisi": "/%y/content/lisans-dynamic/2010.php?y=",
+                    "ly_mezun_ogrenci_sayisi": "/content/lisans-dynamic/2030.php?y=",
+                    "oy_mezun_ogrenci_sayisi": "/%y/content/lisans-dynamic/2030.php?y=",
+                    "ly_degisim_programi_sayi": "/content/lisans-dynamic/2040.php?y=",
+                    "oy_degisim_programi_sayi": "/%y/content/lisans-dynamic/2040.php?y=",
+                    "ly_yatay_gecis_sayi": "/content/lisans-dynamic/2060.php?y=",
+                    "oy_yatay_gecis_sayi": "/%y/content/lisans-dynamic/2060.php?y="}
+    """
 
     dept_ids = []
 
@@ -109,11 +172,17 @@ try:
         second_dict_name = list(pandas_list[::-1][0][0].to_dict())[0] + ".1"
         if uni_id not in uni_data_storage:
             uni_data_storage[uni_id] = (pandas_list[::-1][0][0].to_dict()[second_dict_name][2], pandas_list[::-1][0][0].to_dict()[second_dict_name][1])
-        dept_data_form = dict(dept_data_template)
-        dept_data_form["kod"] = dept_id
-        dept_data_form["bolum_adi"] = list(pandas_list[::-1][0][0].to_dict())[0]
-        dept_data_form["fakulte_adi"] = pandas_list[::-1][0][0].to_dict()[second_dict_name][3]
-        dept_data_form["yil_verileri"] = {}
+        newlist = True
+        if str(dept_id)[:4] in prev_cache:
+            if str(dept_id) in prev_cache[str(dept_id)[:4]]["bolumler"]:
+                dept_data_form = prev_cache[str(dept_id)[:4]]["bolumler"][str(dept_id)]
+                newlist = False
+        if newlist:
+            dept_data_form = dict(dept_data_template)
+            dept_data_form["kod"] = dept_id
+            dept_data_form["bolum_adi"] = list(pandas_list[::-1][0][0].to_dict())[0]
+            dept_data_form["fakulte_adi"] = pandas_list[::-1][0][0].to_dict()[second_dict_name][3]
+            dept_data_form["yil_verileri"] = {}
         depts[dept_id] = dept_data_form
         for panda in pandas_list[::-1]:
             dept_year_data_form = dict(dept_year_data_template)
@@ -180,9 +249,9 @@ try:
         i += 1
 
 
-    with open("bachelor_data_pickle", "wb") as f:
+    with open("bachelor_data_pickle_new", "wb") as f:
         pickle.dump(data, f, protocol=4)
 
-    input("Veriler başarıyla işlendi. \"bachelor_data_pickle\" dosyasından bu verilere ulaşabilirsiniz. Çıkmak için Enter'a basın.")
+    input("Veriler başarıyla işlendi. \"bachelor_data_pickle_new\" bu verilere ulaşabilirsiniz. Çıkmak için Enter'a basın.")
 except:
     traceback.print_exc(file=open("bachelor_err.txt", "w+"))
